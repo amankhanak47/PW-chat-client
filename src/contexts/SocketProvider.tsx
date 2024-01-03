@@ -7,7 +7,28 @@ interface SocketProviderProps {
 
 interface ISocketContext {
 	sendMessage: (msg: string) => any;
+	getMessages: () => any;
 	messages: string[];
+	currentUserID: string;
+	setCurrentUserID: any;
+	initialize: any;
+}
+
+interface Button {
+	code: string;
+	label: string;
+	link_url: string;
+	action_taken: boolean;
+}
+
+export interface Message {
+	sender: number;
+	receiver: number;
+	content: string;
+	sent_at: string;
+	type: string;
+	card_data?: any;
+	buttons?: Button[];
 }
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
@@ -21,21 +42,56 @@ export const useSocket = () => {
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 	const [socket, setSocket] = useState<Socket>();
-	const [messages, setMessages] = useState<string[]>([]);
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [currentUserID, setCurrentUserID] = useState<string>("1");
 
-	const sendMessage: ISocketContext["sendMessage"] = useCallback(
-		(msg) => {
-			console.log("Send Message", msg);
-			if (socket) {
-				socket.emit("message", msg);
+	const onFetchMessages = useCallback((messages: Message[]) => {
+		setMessages(messages);
+	}, []);
+
+	const getMessages: ISocketContext["getMessages"] = useCallback(() => {
+		if (socket) {
+			socket.emit("fetch messages", { userID: 1 }, onFetchMessages);
+		}
+	}, [socket, onFetchMessages]);
+
+	const onInitialize = useCallback(() => {
+		getMessages();
+	}, [getMessages]);
+
+	const initialize: ISocketContext["initialize"] = useCallback(
+		(timezone: string) => {
+			console.log("Initialize", currentUserID, timezone);
+			if (socket && currentUserID) {
+				socket.emit(
+					"initialize",
+					{ userID: currentUserID, timezone },
+					onInitialize
+				);
 			}
 		},
-		[socket]
+		[currentUserID, onInitialize, socket]
 	);
 
-	const onMessageRec = useCallback((msg: string) => {
-		console.log("From Server Msg Rec", msg);
-		const { message } = JSON.parse(msg) as { message: string };
+	const sendMessage: ISocketContext["sendMessage"] = useCallback(
+		(message) => {
+			console.log("Send Message", {
+				message,
+				to: currentUserID == "1" ? "2" : "1",
+			});
+			if (socket) {
+				socket.emit("message", {
+					message,
+					to: currentUserID == "1" ? "2" : "1",
+					userID: currentUserID,
+				});
+			}
+		},
+		[currentUserID, socket]
+	);
+
+	const onMessageRec = useCallback((message: Message) => {
+		console.log("From Server Msg Rec", message);
 		setMessages((prev) => [...prev, message]);
 	}, []);
 
@@ -50,10 +106,19 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 			_socket.disconnect();
 			setSocket(undefined);
 		};
-	}, []);
+	}, [onMessageRec]);
 
 	return (
-		<SocketContext.Provider value={{ sendMessage, messages }}>
+		<SocketContext.Provider
+			value={{
+				sendMessage,
+				receivedMessages: messages,
+				getMessages,
+				currentUserID,
+				setCurrentUserID,
+				initialize,
+			}}
+		>
 			{children}
 		</SocketContext.Provider>
 	);
