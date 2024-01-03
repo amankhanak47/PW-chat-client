@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { ChatPageContainer } from "./style";
 import Message from "../Message";
+import { useSocket } from "../../contexts/SocketProvider";
 
 function Chat() {
+  const { sendMessage, receivedMessages } = useSocket();
   const [messages, setMessages] = useState<any>([
     {
       id: "77d38f91-cca6-4424-858b-da53c4807b1f",
