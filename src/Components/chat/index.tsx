@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { ChatPageContainer } from "./style";
 import Message from "../Message";
 import { useSocket } from "../../contexts/SocketProvider";
+import { Dialog } from "@mui/material";
+import TimeZoneSelectComponent from "../TimeZoneSelectComponent";
 import TextField from "@mui/material/TextField";
 import { IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 
-function Chat() {
+function Chat({ initial }: { initial: boolean }) {
 	const { sendMessage, receivedMessages } = useSocket();
+	const [open, setOpen] = useState(initial);
+	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const [message, setMessage] = useState<String>("");
 	const onSend = () => {
 		sendMessage(message.trim());
@@ -35,12 +39,17 @@ function Chat() {
 		},
 		{
 			id: "c33dbd4f-e6ab-459d-aa54-8b18db0453be",
-			content: "User attributes updated for Aabir U11",
+			content:
+				"User attributes for Aabir U1 is incorrect suspend him or add or update his details.",
 			from: "0e8bcf54-c99d-4b36-a282-bf4a65e4830f",
 			to: "0f78525a-4302-4d90-88ef-a76dec306fd8",
 			sentAt: "2023-10-04T07:12:39.957Z",
 			seenAt: "2023-10-04T07:35:21.347Z",
 			card: null,
+			buttons: [
+				{ label: "Add", url: "/add" },
+				{ label: "Update", url: "/update" },
+			],
 		},
 		{
 			id: "51f28dff-3bc1-4bf4-aa46-33bf9aa40fca",
@@ -260,10 +269,10 @@ function Chat() {
 		},
 		{
 			id: "5c85e92e-3ead-4f13-8360-3b379f043d4f",
-			content: "User attributes updated for Aabir U22 Dhanvi",
+			content: "Modified attributes updated for Aabir U22 Dhanvi",
 			from: "0e8bcf54-c99d-4b36-a282-bf4a65e4830f",
 			to: "0f78525a-4302-4d90-88ef-a76dec306fd8",
-			sentAt: "2023-12-20T09:51:49.224Z",
+			sentAt: "2023-12-20T09:52:05.739Z",
 			seenAt: "2023-12-20T09:52:05.739Z",
 			card: null,
 		},
@@ -273,7 +282,7 @@ function Chat() {
 		<ChatPageContainer>
 			<div className="chat-messages-container">
 				{messages.map((m: any) => {
-					return <Message m={m} />;
+					return <Message m={m} selectedTimeZone={selectedTimeZone} />;
 				})}
 			</div>
 			<div className="input-container">
@@ -288,6 +297,14 @@ function Chat() {
 					<SendIcon />
 				</IconButton>
 			</div>
+			{open && (
+				<Dialog open={open}>
+					<TimeZoneSelectComponent
+						close={setOpen}
+						setTimeZone={setSelectedTimeZone}
+					/>
+				</Dialog>
+			)}
 		</ChatPageContainer>
 	);
 }
