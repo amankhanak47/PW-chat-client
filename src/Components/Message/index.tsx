@@ -1,14 +1,24 @@
+import { Link } from "react-router-dom";
 import { StyledMessage } from "./style";
 
 function Message({ m }: { m: any }) {
-    // console.log(this, "ldsk")
+  // console.log(this, "ldsk")
   const userId = "0e8bcf54-c99d-4b36-a282-bf4a65e4830f";
   const direction = m.from === userId ? "left" : "right";
+  console.log(m.buttons);
   return (
     <StyledMessage direction={direction}>
       <div className={`message-content ${direction}`}>
-        <p>{m.content}</p>
-        <span className="message-footer">
+        <div className="message-body">
+          <p>{m.content}</p>
+          {m.buttons && <div className="buttons">
+            {m.buttons.map((btn: any) => {
+              return <Link to={btn.url} className="redirect-login">
+              <button className="chat-btn">{btn.label}</button></Link>;
+            })}
+          </div>}
+        </div>
+        <div className="message-footer">
           <p>{m.from}</p>
           <p>
             07-Sep-2023 14:03
@@ -19,7 +29,7 @@ function Message({ m }: { m: any }) {
               />
             </span>
           </p>
-        </span>
+        </div>
       </div>
     </StyledMessage>
   );

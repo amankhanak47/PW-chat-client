@@ -4,7 +4,7 @@ import Message from "../Message";
 import { useSocket } from "../../contexts/SocketProvider";
 
 function Chat() {
-  const { sendMessage, receivedMessages } = useSocket();
+  // const { sendMessage, messages } = useSocket();
   const [messages, setMessages] = useState<any>([
     {
       id: "77d38f91-cca6-4424-858b-da53c4807b1f",
@@ -27,12 +27,13 @@ function Chat() {
     },
     {
       id: "c33dbd4f-e6ab-459d-aa54-8b18db0453be",
-      content: "User attributes updated for Aabir U11",
+      content: "User attributes for Aabir U1 is incorrect suspend him or add or update his details.",
       from: "0e8bcf54-c99d-4b36-a282-bf4a65e4830f",
       to: "0f78525a-4302-4d90-88ef-a76dec306fd8",
       sentAt: "2023-10-04T07:12:39.957Z",
       seenAt: "2023-10-04T07:35:21.347Z",
       card: null,
+      buttons: [{label: "Add", url: "/add"},{label: "Update", url: "/update"}]
     },
     {
       id: "51f28dff-3bc1-4bf4-aa46-33bf9aa40fca",
