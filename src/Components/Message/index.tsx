@@ -3,6 +3,8 @@ import { Message, useSocket } from "../../contexts/SocketProvider";
 import { convertToSelectedTimeZone } from "../../helpers/helpers";
 import { StyledMessage } from "./style";
 
+const users = { 1: "CEO", 2: "Team Member" };
+
 function MessageComponent({
 	m,
 	selectedTimeZone,
@@ -33,7 +35,7 @@ function MessageComponent({
 					)}
 				</div>
 				<div className="message-footer">
-					<p>{m.sender}</p>
+					<p>{users[m.sender]}</p>
 					<p>
 						{convertToSelectedTimeZone(m.sent_at, selectedTimeZone)}
 						<span className="double-tick">
