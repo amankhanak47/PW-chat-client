@@ -19,7 +19,7 @@ function MessageComponent({
 
 	return (
 		<StyledMessage direction={direction}>
-			<div className={`message-content ${direction}`}>
+			<div className={`message-content ${direction}`} id={m.uuid}>
 				<div className="message-body">
 					<p>{m.content}</p>
 					{m.buttons && m.buttons.length > 0 && m.buttons[0].label != null && (
@@ -34,7 +34,7 @@ function MessageComponent({
 						</div>
 					)}
 				</div>
-				<div className="message-footer">
+				<div className="message-footer" >
 					<p>{users[m.sender]}</p>
 					<p>
 						{convertToSelectedTimeZone(m.sent_at, selectedTimeZone)}

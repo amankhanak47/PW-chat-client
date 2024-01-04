@@ -14,6 +14,14 @@ function Chat({ initial }: { initial: boolean }) {
 	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const [message, setMessage] = useState<string>("");
 
+	useEffect(() => {
+		if (receivedMessages) {
+			const last_index = receivedMessages.length - 1;
+			const lastMessage = receivedMessages[last_index];
+			const parentMessage = document.getElementById(lastMessage?.uuid);
+			parentMessage?.scrollIntoView({ behavior: "instant", block: "end" });
+		}
+	}, [receivedMessages]);
 	const onSend = () => {
 		sendMessage(message.trim());
 		setMessage("");
@@ -38,6 +46,7 @@ function Chat({ initial }: { initial: boolean }) {
 					onChange={(e) => {
 						setMessage(e.target.value);
 					}}
+					onKeyDown={(e) => { if (e.key === 'Enter') onSend() }}
 					value={message}
 					fullWidth
 				/>
