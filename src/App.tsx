@@ -1,4 +1,4 @@
-import Chat from "./Components/chat";
+import Chat from "./components/chat";
 import "./App.css";
 import { SocketProvider } from "./contexts/SocketProvider";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
