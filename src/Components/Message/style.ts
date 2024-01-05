@@ -58,4 +58,9 @@ export const StyledMessage = styled.div<MessageProps>`
   .double-tick {
     margin-left: 4px;
   }
+  .form-body{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 `;

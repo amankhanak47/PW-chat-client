@@ -38,9 +38,20 @@ function Chat({ initial }: { initial: boolean }) {
       userID: currentUserID,
     });
   };
+  const generateButtons = () => {
+    socket.emit("generate_buttons", {
+      message: "goal Update",
+      data: { initial: "10", taget: "0" },
+      to: currentUserID == "1" ? "2" : "1",
+      userID: currentUserID,
+    });
+  };
   return (
     <ChatPageContainer>
-      <Button onClick={generateForm}>Generate Form</Button>
+      <div className="chat-header">
+        <Button onClick={generateForm}>Generate Form</Button>
+        <Button onClick={generateButtons}>Generate Buttons</Button>
+      </div>
       <div className="chat-messages-container">
         {receivedMessages &&
           receivedMessages.map((m: Message) => {
