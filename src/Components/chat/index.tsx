@@ -31,7 +31,7 @@ function Chat({ initial }: { initial: boolean }) {
     setSelectedTimeZone(value);
   };
   const generateForm = () => {
-    socket.emit("genrate_form", {
+    socket.emit("generate_form", {
       message: "goal Update",
       data: { initial: "10", taget: "0" },
       to: currentUserID == "1" ? "2" : "1",
