@@ -3,7 +3,7 @@ import { useSocket } from "../../contexts/SocketProvider";
 import { convertToSelectedTimeZone } from "../../helpers/helpers";
 import { StyledMessage } from "./style";
 import { Fragment, FunctionComponent, useState } from "react";
-import { TextField } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import { Message } from "../../types/message";
 
 const users = { 1: "CEO", 2: "Team Member" };
@@ -74,12 +74,12 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
 								/>
 								{!isLapsed && sender != currentUserID && (
 									<div className="buttons">
-										<button
+										<Button
 											className="chat-btn"
 											//onClick={handleForm}
 										>
 											save
-										</button>
+										</Button>
 									</div>
 								)}
 							</div>

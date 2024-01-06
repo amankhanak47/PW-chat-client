@@ -1,5 +1,5 @@
 import { Autocomplete, Button, Dialog, TextField } from "@mui/material";
-import { TimeZoneSelectComponentContainer } from "./style";
+import { InitialConfigurationDialogContainer } from "./style";
 import { allTimeZones } from "../../helpers/helpers";
 import { useState } from "react";
 import Radio from "@mui/material/Radio";
@@ -28,13 +28,14 @@ const InitialConfigurationDialog = ({
 
 	return (
 		<Dialog open={open}>
-			<TimeZoneSelectComponentContainer>
+			<InitialConfigurationDialogContainer>
 				<FormControl sx={{ mb: 1 }}>
 					<FormLabel>Current User</FormLabel>
 					<RadioGroup
 						defaultValue="1"
 						name="radio-buttons-group"
 						onChange={handleChange}
+						row
 					>
 						<FormControlLabel value="1" control={<Radio />} label="CEO" />
 						<FormControlLabel
@@ -48,9 +49,9 @@ const InitialConfigurationDialog = ({
 					<div className="time-zone-element">
 						<Autocomplete
 							renderInput={(params) => (
-								<TextField {...params} label="Select Timezone" />
+								<TextField {...params} size="small" label="Select Timezone" />
 							)}
-							onChange={(e, v) => v && setSelectedTimeZone(v)}
+							onChange={(_e, v) => v && setSelectedTimeZone(v)}
 							options={allTimeZones}
 						/>
 					</div>
@@ -71,7 +72,7 @@ const InitialConfigurationDialog = ({
 						Save
 					</Button>
 				</div>
-			</TimeZoneSelectComponentContainer>
+			</InitialConfigurationDialogContainer>
 		</Dialog>
 	);
 };

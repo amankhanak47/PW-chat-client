@@ -1,7 +1,6 @@
 import { SetStateAction, useEffect, useState } from "react";
 import MessageComponent from "../ChatMessage";
 import { useSocket } from "../../contexts/SocketProvider";
-import { Dialog } from "@mui/material";
 import InitialConfigurationDialog from "../InitialConfigurationDialog";
 import TextField from "@mui/material/TextField";
 import { IconButton } from "@mui/material";
@@ -25,7 +24,7 @@ const renderMessages = (messages: Message[], selectedTimezone: string) => {
 };
 
 const Chat = ({ initial }: ChatProps) => {
-	const { sendMessage, receivedMessages, currentUserID } = useSocket();
+	const { sendMessage, receivedMessages } = useSocket();
 	const [open, setOpen] = useState(initial);
 	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const [message, setMessage] = useState<string>("");
@@ -84,21 +83,18 @@ const Chat = ({ initial }: ChatProps) => {
 						if (e.key === "Enter") onSend();
 					}}
 					value={message}
+					size="small"
 					fullWidth
 				/>
 				<IconButton onClick={onSend}>
 					<SendIcon />
 				</IconButton>
 			</div>
-			{open && (
-				<Dialog open={open}>
-					<InitialConfigurationDialog
-						open={open}
-						close={setOpen}
-						setTimeZone={setTimeZone}
-					/>
-				</Dialog>
-			)}
+			<InitialConfigurationDialog
+				open={open}
+				close={setOpen}
+				setTimeZone={setTimeZone}
+			/>
 		</ChatPageContainer>
 	);
 };
