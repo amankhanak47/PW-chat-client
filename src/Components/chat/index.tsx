@@ -1,9 +1,23 @@
-import { SetStateAction, useEffect, useState } from "react";
-import MessageComponent from "../ChatMessage";
+import {
+	FunctionComponent,
+	SetStateAction,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
+import ChatMessage from "../ChatMessage";
 import { useSocket } from "../../contexts/SocketProvider";
 import InitialConfigurationDialog from "../InitialConfigurationDialog";
 import TextField from "@mui/material/TextField";
-import { IconButton } from "@mui/material";
+import {
+	Box,
+	IconButton,
+	List,
+	ListItem,
+	ListItemButton,
+	ListItemText,
+	ListSubheader,
+} from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { ChatPageContainer } from "./style";
 import { Message } from "../../types/message";
@@ -12,14 +26,62 @@ type ChatProps = {
 	initial: boolean;
 };
 
+type Command = {
+	name: string;
+};
+
+type CommandDialogProps = {
+	message: string;
+	commands: Command[];
+};
+
 const renderMessages = (messages: Message[], selectedTimezone: string) => {
 	return (
 		messages &&
 		messages.map((m: Message) => {
-			return (
-				<MessageComponent message={m} selectedTimeZone={selectedTimezone} />
-			);
+			return <ChatMessage message={m} selectedTimeZone={selectedTimezone} />;
 		})
+	);
+};
+
+const CommandDialog: FunctionComponent<CommandDialogProps> = ({
+	message,
+	commands,
+}) => {
+	const commandsList = useMemo(() => {
+		const searchKey = message.replace("/", "").toLowerCase().trim();
+		if (searchKey == "") return commands;
+
+		const filteredCommands = commands.filter((c) =>
+			c.name.toLowerCase().includes(searchKey)
+		);
+
+		return filteredCommands;
+	}, [commands, message]);
+
+	return (
+		<Box sx={{ background: "#fff" }}>
+			<List
+				subheader={
+					<ListSubheader id="nested-list-subheader">
+						Available Actions
+					</ListSubheader>
+				}
+				dense
+			>
+				{commandsList && commandsList.length > 0 ? (
+					commandsList.map((command) => (
+						<ListItem>
+							<ListItemButton>
+								<ListItemText primary={command.name} />
+							</ListItemButton>
+						</ListItem>
+					))
+				) : (
+					<ListItem>No matching commands</ListItem>
+				)}
+			</List>
+		</Box>
 	);
 };
 
@@ -28,6 +90,12 @@ const Chat = ({ initial }: ChatProps) => {
 	const [open, setOpen] = useState(initial);
 	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const [message, setMessage] = useState<string>("");
+	const [showCommandDialog, setShowCommandDialog] = useState<boolean>(false);
+	const [commands, setCommands] = useState([
+		{ name: "Update My Goals" },
+		{ name: "View History" },
+		{ name: "View Goals and Comment Updates" },
+	]);
 
 	useEffect(() => {
 		if (receivedMessages) {
@@ -45,6 +113,13 @@ const Chat = ({ initial }: ChatProps) => {
 
 	const setTimeZone = (value: SetStateAction<string>) => {
 		setSelectedTimeZone(value);
+	};
+
+	const onMessageChange = (event: any) => {
+		if (event.target.value && event.target.value.startsWith("/"))
+			setShowCommandDialog(true);
+		else setShowCommandDialog(false);
+		setMessage(event.target.value);
 	};
 
 	// const generateForm = () => {
@@ -74,22 +149,24 @@ const Chat = ({ initial }: ChatProps) => {
 			<div className="chat-messages-container">
 				{renderMessages(receivedMessages, selectedTimeZone)}
 			</div>
-			<div className="input-container">
+			{showCommandDialog && (
+				<CommandDialog commands={commands} message={message} />
+			)}
+			<Box display={"flex"}>
 				<TextField
-					onChange={(e) => {
-						setMessage(e.target.value);
-					}}
+					onChange={onMessageChange}
 					onKeyDown={(e) => {
 						if (e.key === "Enter") onSend();
 					}}
 					value={message}
 					size="small"
+					placeholder="Type / to view available actions"
 					fullWidth
 				/>
 				<IconButton onClick={onSend}>
 					<SendIcon />
 				</IconButton>
-			</div>
+			</Box>
 			<InitialConfigurationDialog
 				open={open}
 				close={setOpen}

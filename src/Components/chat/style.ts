@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 
 export const ChatPageContainer = styled.div`
-	padding: 0;
+	padding: 24px;
 	margin: 0;
 	background: #f8fbff;
 	height: 100vh;
@@ -11,16 +11,15 @@ export const ChatPageContainer = styled.div`
 	flex-direction: column;
 	gap: 2rem;
 	.chat-messages-container {
-		width: min(72rem, 100%);
-		margin: 12px auto;
 		box-sizing: border-box;
 		flex: 1;
 		display: flex;
 		gap: 1rem;
-		padding: 1rem 1rem 1rem 1.1rem;
+		padding: 1rem;
 		overflow-y: scroll;
 		flex-direction: column;
 	}
+
 	.input-container {
 		width: min(72rem, 100%);
 		box-sizing: border-box;
