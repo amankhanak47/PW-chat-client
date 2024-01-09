@@ -86,11 +86,12 @@ const CommandDialog: FunctionComponent<CommandDialogProps> = ({
 };
 
 const Chat = ({ initial }: ChatProps) => {
-	const { sendMessage, receivedMessages } = useSocket();
+	const { sendMessage, sendAttachedMessage, receivedMessages } = useSocket();
 	const [open, setOpen] = useState(initial);
 	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const [message, setMessage] = useState<string>("");
 	const [showCommandDialog, setShowCommandDialog] = useState<boolean>(false);
+	const [file, setFile] = useState(null);
 	const [commands, setCommands] = useState([
 		{ name: "Update My Goals" },
 		{ name: "View History" },
@@ -107,8 +108,24 @@ const Chat = ({ initial }: ChatProps) => {
 	}, [receivedMessages]);
 
 	const onSend = () => {
+		if (file) {
+			attachmentChat();
+			return;
+		}
 		sendMessage(message.trim());
 		setMessage("");
+	};
+	const attachmentChat = () => {
+		if (file) {
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				const imageData = reader.result.split(",")[1];
+				sendAttachedMessage(message.trim(), imageData, file.name);
+			};
+
+			reader.readAsDataURL(file);
+		}
+		setFile(null);
 	};
 
 	const setTimeZone = (value: SetStateAction<string>) => {
@@ -153,6 +170,7 @@ const Chat = ({ initial }: ChatProps) => {
 				<CommandDialog commands={commands} message={message} />
 			)}
 			<Box display={"flex"}>
+				<input type="file" onChange={(e) => setFile(e?.target?.files?.[0])} />
 				<TextField
 					onChange={onMessageChange}
 					onKeyDown={(e) => {

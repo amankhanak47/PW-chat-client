@@ -8,6 +8,7 @@ type SocketProviderProps = {
 
 type ISocketContext = {
 	sendMessage: (msg: string) => any;
+	sendAttachedMessage: (msg: string, fileBuffer: any, fileName) => any;
 	getMessages: () => any;
 	receivedMessages: Message[];
 	currentUserID: number;
@@ -72,6 +73,22 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 		[currentUserID, socket, toUser]
 	);
 
+	const sendAttachedMessage: ISocketContext["sendAttachedMessage"] =
+		useCallback(
+			(message, fileBuffer, fileName) => {
+				if (socket && message.trim()) {
+					socket.emit("upload_file", {
+						message: message.trim(),
+						to: toUser,
+						userID: currentUserID,
+						file: fileBuffer,
+						fileName: fileName,
+					});
+				}
+			},
+			[currentUserID, socket, toUser]
+		);
+
 	const onMessageRec = useCallback((message: Message) => {
 		console.log("From Server Msg Rec", message);
 		setMessages((prev) => [...prev, message]);
@@ -92,6 +109,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 	const value = {
 		sendMessage,
+		sendAttachedMessage,
 		receivedMessages: messages,
 		getMessages,
 		currentUserID,
