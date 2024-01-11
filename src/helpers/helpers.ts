@@ -2,7 +2,7 @@ import moment from "moment-timezone";
 
 export const convertToSelectedTimeZone = (
   utcDateString: string,
-  selectedTimeZome: string
+  selectedTimeZome: string,
 ) => {
   const convertedDate = moment
     .utc(utcDateString)

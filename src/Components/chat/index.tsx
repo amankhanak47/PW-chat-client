@@ -1,179 +1,152 @@
-import {
-	FunctionComponent,
-	SetStateAction,
-	useEffect,
-	useMemo,
-	useState,
-} from "react";
+import { Fragment, SetStateAction, useEffect, useState } from "react";
 import ChatMessage from "../ChatMessage";
 import { useSocket } from "../../contexts/SocketProvider";
 import InitialConfigurationDialog from "../InitialConfigurationDialog";
 import TextField from "@mui/material/TextField";
-import {
-	Box,
-	IconButton,
-	List,
-	ListItem,
-	ListItemButton,
-	ListItemText,
-	ListSubheader,
-} from "@mui/material";
+import { Box, Chip, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { ChatPageContainer } from "./style";
-import { Message } from "../../types/message";
+import { AvailableCommands, Command, Message } from "../../types/message";
+import CommandDialog from "../CommandDialog";
+import UpdateGoalsFlow from "../UpdateGoalsFlow";
 
 type ChatProps = {
-	initial: boolean;
-};
-
-type Command = {
-	name: string;
-};
-
-type CommandDialogProps = {
-	message: string;
-	commands: Command[];
+  initial: boolean;
 };
 
 const renderMessages = (messages: Message[], selectedTimezone: string) => {
-	return (
-		messages &&
-		messages.map((m: Message) => {
-			return <ChatMessage message={m} selectedTimeZone={selectedTimezone} />;
-		})
-	);
+  return (
+    messages &&
+    messages.map((m: Message) => {
+      return <ChatMessage message={m} selectedTimeZone={selectedTimezone} />;
+    })
+  );
 };
 
-const CommandDialog: FunctionComponent<CommandDialogProps> = ({
-	message,
-	commands,
-}) => {
-	const commandsList = useMemo(() => {
-		const searchKey = message.replace("/", "").toLowerCase().trim();
-		if (searchKey == "") return commands;
-
-		const filteredCommands = commands.filter((c) =>
-			c.name.toLowerCase().includes(searchKey)
-		);
-
-		return filteredCommands;
-	}, [commands, message]);
-
-	return (
-		<Box sx={{ background: "#fff" }}>
-			<List
-				subheader={
-					<ListSubheader id="nested-list-subheader">
-						Available Actions
-					</ListSubheader>
-				}
-				dense
-			>
-				{commandsList && commandsList.length > 0 ? (
-					commandsList.map((command) => (
-						<ListItem>
-							<ListItemButton>
-								<ListItemText primary={command.name} />
-							</ListItemButton>
-						</ListItem>
-					))
-				) : (
-					<ListItem>No matching commands</ListItem>
-				)}
-			</List>
-		</Box>
-	);
+const CommandComponent = ({ activeCommand }: { activeCommand: Command }) => {
+  switch (activeCommand.name) {
+    case AvailableCommands.UPDATE_GOALS: {
+      return <UpdateGoalsFlow />;
+    }
+  }
+  return <Fragment></Fragment>;
 };
 
 const Chat = ({ initial }: ChatProps) => {
-	const { sendMessage, receivedMessages } = useSocket();
-	const [open, setOpen] = useState(initial);
-	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
-	const [message, setMessage] = useState<string>("");
-	const [showCommandDialog, setShowCommandDialog] = useState<boolean>(false);
-	const [commands, setCommands] = useState([
-		{ name: "Update My Goals" },
-		{ name: "View History" },
-		{ name: "View Goals and Comment Updates" },
-	]);
+  const { sendMessage, receivedMessages } = useSocket();
+  const [open, setOpen] = useState(initial);
+  const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
+  const [message, setMessage] = useState<string>("");
+  const [showCommandDialog, setShowCommandDialog] = useState<boolean>(false);
+  const [commands, setCommands] = useState([
+    { name: "Update My Goals", code: "UPDATE_MY_GOALS" },
+    { name: "View History", code: "VIEW_HISTORY" },
+    { name: "View Goals and Comment Updates", code: "COMMENT_ON_GOALS" },
+  ]);
+  const [activeCommand, setActiveCommand] = useState<Command | undefined>();
 
-	useEffect(() => {
-		if (receivedMessages) {
-			const lastIndex = receivedMessages.length - 1;
-			const lastMessage = receivedMessages[lastIndex];
-			const parentMessage = document.getElementById(lastMessage?.uuid);
-			parentMessage?.scrollIntoView({ behavior: "instant", block: "end" });
-		}
-	}, [receivedMessages]);
+  useEffect(() => {
+    if (receivedMessages) {
+      const lastIndex = receivedMessages.length - 1;
+      const lastMessage = receivedMessages[lastIndex];
+      const parentMessage = document.getElementById(lastMessage?.uuid);
+      parentMessage?.scrollIntoView({ behavior: "instant", block: "end" });
+    }
+  }, [receivedMessages]);
 
-	const onSend = () => {
-		sendMessage(message.trim());
-		setMessage("");
-	};
+  const onSend = () => {
+    sendMessage(message.trim());
+    setMessage("");
+  };
 
-	const setTimeZone = (value: SetStateAction<string>) => {
-		setSelectedTimeZone(value);
-	};
+  const setTimeZone = (value: SetStateAction<string>) => {
+    setSelectedTimeZone(value);
+  };
 
-	const onMessageChange = (event: any) => {
-		if (event.target.value && event.target.value.startsWith("/"))
-			setShowCommandDialog(true);
-		else setShowCommandDialog(false);
-		setMessage(event.target.value);
-	};
+  const onMessageChange = (event: any) => {
+    if (event.target.value && event.target.value.startsWith("/"))
+      setShowCommandDialog(true);
+    else setShowCommandDialog(false);
+    if (activeCommand) return;
+    setMessage(event.target.value);
+  };
 
-	// const generateForm = () => {
-	// 	socket.emit("generate_form", {
-	// 		message: "goal Update",
-	// 		data: { initial: "10", taget: "0" },
-	// 		to: currentUserID == "1" ? "2" : "1",
-	// 		userID: currentUserID,
-	// 	});
-	// };
+  const handleCommandSelected = (command) => {
+    setShowCommandDialog(false);
+    setActiveCommand(command);
+    setMessage("");
+  };
 
-	// const generateButtons = () => {
-	// 	socket.emit("generate_buttons", {
-	// 		message: "goal Update",
-	// 		data: { initial: "10", taget: "0" },
-	// 		to: currentUserID == "1" ? "2" : "1",
-	// 		userID: currentUserID,
-	// 	});
-	// };
+  // const generateForm = () => {
+  // 	socket.emit("generate_form", {
+  // 		message: "goal Update",
+  // 		data: { initial: "10", taget: "0" },
+  // 		to: currentUserID == "1" ? "2" : "1",
+  // 		userID: currentUserID,
+  // 	});
+  // };
 
-	return (
-		<ChatPageContainer>
-			<div className="chat-header">
-				{/* <Button onClick={generateForm}>Generate Form</Button>
+  // const generateButtons = () => {
+  // 	socket.emit("generate_buttons", {
+  // 		message: "goal Update",
+  // 		data: { initial: "10", taget: "0" },
+  // 		to: currentUserID == "1" ? "2" : "1",
+  // 		userID: currentUserID,
+  // 	});
+  // };
+
+  return (
+    <ChatPageContainer>
+      <div className="chat-header">
+        {/* <Button onClick={generateForm}>Generate Form</Button>
 				<Button onClick={generateButtons}>Generate Buttons</Button> */}
-			</div>
-			<div className="chat-messages-container">
-				{renderMessages(receivedMessages, selectedTimeZone)}
-			</div>
-			{showCommandDialog && (
-				<CommandDialog commands={commands} message={message} />
-			)}
-			<Box display={"flex"}>
-				<TextField
-					onChange={onMessageChange}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") onSend();
-					}}
-					value={message}
-					size="small"
-					placeholder="Type / to view available actions"
-					fullWidth
-				/>
-				<IconButton onClick={onSend}>
-					<SendIcon />
-				</IconButton>
-			</Box>
-			<InitialConfigurationDialog
-				open={open}
-				close={setOpen}
-				setTimeZone={setTimeZone}
-			/>
-		</ChatPageContainer>
-	);
+      </div>
+      <div className="chat-messages-container">
+        {renderMessages(receivedMessages, selectedTimeZone)}
+      </div>
+      {showCommandDialog && (
+        <CommandDialog
+          commands={commands}
+          message={message}
+          onCommandSelected={handleCommandSelected}
+        />
+      )}
+      {activeCommand && <CommandComponent activeCommand={activeCommand} />}
+      <Box display={"flex"}>
+        <TextField
+          onChange={onMessageChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSend();
+          }}
+          value={message}
+          size="small"
+          placeholder="Type / to view available actions"
+          InputProps={{
+            startAdornment: activeCommand && (
+              <Chip
+                label={activeCommand?.name}
+                color="success"
+                sx={{
+                  p: 1,
+                  borderRadius: "5px",
+                }}
+                onDelete={() => setActiveCommand(undefined)}
+              />
+            ),
+          }}
+          fullWidth
+        />
+        <IconButton onClick={onSend}>
+          <SendIcon />
+        </IconButton>
+      </Box>
+      <InitialConfigurationDialog
+        open={open}
+        close={setOpen}
+        setTimeZone={setTimeZone}
+      />
+    </ChatPageContainer>
+  );
 };
 
 export default Chat;
