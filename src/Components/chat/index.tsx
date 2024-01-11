@@ -120,20 +120,22 @@ const Chat = ({ initial }: ChatProps) => {
 		sendMessage(message.trim());
 		setMessage("");
 	};
+
 	const sendattachmentChat = async () => {
 		if (files.length != 0) {
-			const fileBuffers = await Promise.all(
-				files.map((file: any) => {
-					return new Promise((resolve) => {
-						const reader = new FileReader();
-						reader.onloadend = () => {
-							const imageData = reader.result.split(",")[1];
-							resolve({ data: imageData, name: file.name });
-						};
-						reader.readAsDataURL(file);
-					});
-				})
-			);
+
+			const fileBuffersPromise = files.map((file: any) => {
+				return new Promise((resolve) => {
+					const reader: any = new FileReader();
+					reader.onloadend = () => {
+						const imageData = reader.result.split(",")[1];
+						resolve({ data: imageData, name: file.name });
+					};
+					reader.readAsDataURL(file);
+				});
+			});
+			
+			const fileBuffers: any = await Promise.all(fileBuffersPromise);
 			sendAttachedMessage(message.trim(), fileBuffers);
 		}
 		setFiles([]);

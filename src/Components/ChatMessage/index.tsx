@@ -47,7 +47,7 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
 	// 	initialize();
 	// };
 	useEffect(() => {
-		if (type === "attachments") {
+		if (attachments) {
 			const fileNames = attachments || [];
 			getImageUrl(fileNames, message.id, setFiles);
 		}
@@ -56,7 +56,7 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
 		<StyledMessage direction={direction}>
 			<div className={`message-content ${direction}`} id={uuid}>
 				<div className="message-body">
-					{type === "attachments" &&
+					{attachments &&
 						<AttachedFiles files={files}/>
 					}
 					<p>{content}</p>

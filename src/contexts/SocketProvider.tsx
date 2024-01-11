@@ -8,8 +8,8 @@ type SocketProviderProps = {
 
 type ISocketContext = {
 	sendMessage: (msg: string) => any;
-	sendAttachedMessage: (msg: string, fileBuffer: string) => any;
-	getImageUrl: (fileNames: string, messageId: string, setUrl: any) => any;
+	sendAttachedMessage: (msg: string, fileBuffers: string) => any;
+	getImageUrl: (fileNames: string, messageId: string, setFiles: any) => any;
 	getMessages: () => any;
 	receivedMessages: Message[];
 	currentUserID: number;
@@ -75,13 +75,13 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 	const sendAttachedMessage: ISocketContext["sendAttachedMessage"] =
 		useCallback(
-			(message, fileBuffer) => {
+			(message, fileBuffers) => {
 				if (socket) {
 					socket.emit("upload_file", {
 						message: message.trim(),
 						to: toUser,
 						userID: currentUserID,
-						file: fileBuffer,
+						files: fileBuffers,
 					});
 				}
 			},
@@ -89,7 +89,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 		);
 
 	const getImageUrl: ISocketContext["getImageUrl"] = useCallback(
-		(fileNames, messageId, setUrl) => {
+		(fileNames, messageId, setFiles) => {
 			if (socket) {
 				socket.emit(
 					"load_file",
@@ -98,7 +98,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 						messageId: messageId,
 					},
 					(data: any) => {
-						setUrl(data);
+						setFiles(data);
 					}
 				);
 			}

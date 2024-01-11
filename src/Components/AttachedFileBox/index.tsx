@@ -5,12 +5,14 @@ import { FunctionComponent, useState } from "react";
 import { AttachedFileBoxContainer } from "./style";
 import PreviewDialog from "../Preview";
 import { IconButton } from "@mui/material";
+
 type AttachedFileBoxprops = {
 	name: string;
 	url?: string;
     type?: string;
     deleteFile?: any
 };
+
 const AttachedFileBox: FunctionComponent<AttachedFileBoxprops> = ({
 	name,
     url,
@@ -18,8 +20,10 @@ const AttachedFileBox: FunctionComponent<AttachedFileBoxprops> = ({
     type,
     
 }) => {
+	
 	const [show, setShow] = useState<boolean>(false);
 	const extension = name.split(".").pop();
+
 	return (
 		<AttachedFileBoxContainer>
 			{type?.includes("image") && url ? (
@@ -45,7 +49,6 @@ const AttachedFileBox: FunctionComponent<AttachedFileBoxprops> = ({
 			<PreviewDialog
 				open={show}
 				hide={() => {
-					console.log(name);
 					setShow(false);
 				}}
 				file={{ url, extension }}

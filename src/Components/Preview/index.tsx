@@ -24,7 +24,7 @@ const PreviewDialog = ({ hide, file, open }: PreviewDialogProps) => {
 					hide();
 				}}
 				variant="outlined"
-				fullWidth
+				
 			>
 				Close
 			</Button>
