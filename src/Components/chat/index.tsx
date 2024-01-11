@@ -134,7 +134,7 @@ const Chat = ({ initial }: ChatProps) => {
 					reader.readAsDataURL(file);
 				});
 			});
-			
+
 			const fileBuffers: any = await Promise.all(fileBuffersPromise);
 			sendAttachedMessage(message.trim(), fileBuffers);
 		}
@@ -152,7 +152,7 @@ const Chat = ({ initial }: ChatProps) => {
 		setMessage(event.target.value);
 	};
 
-	const handleFileChange = async (e: any) => {
+	const handleUpload = async (e: any) => {
 		let allow = true;
 		if (e.target.files.length > 10) {
 			alert("can send more than 10 files");
@@ -173,7 +173,7 @@ const Chat = ({ initial }: ChatProps) => {
 		inputRef.current!.value = null;
 	};
 
-	const handleAddFileChange = async (e: any) => {
+	const handleAdditionalUpload = async (e: any) => {
 		let allow = true;
 		if (e.target.files.length + files.length > 10) {
 			alert("cant send more than 10 files");
@@ -191,13 +191,9 @@ const Chat = ({ initial }: ChatProps) => {
 				break;
 			}
 		}
-		const uniqueNewFiles = Array.from(e.target.files).filter(
-			(newFile) =>
-				!files.some((existingFile: any) => existingFile.name === newFile.name)
-		);
 
 		if (allow) {
-			setFiles((prevFiles: any) => [...prevFiles, ...uniqueNewFiles]);
+			setFiles((prevFiles: any) => [...prevFiles, ...Array.from(e.target.files)]);
 		}
 		addFileRef.current!.value = null;
 	};
@@ -274,14 +270,14 @@ const Chat = ({ initial }: ChatProps) => {
 				ref={inputRef}
 				type="file"
 				multiple
-				onChange={handleFileChange}
+				onChange={handleUpload}
 				style={{ display: "none" }}
 			/>
 			<input
 				ref={addFileRef}
 				type="file"
 				multiple
-				onChange={handleAddFileChange}
+				onChange={handleAdditionalUpload}
 				style={{ display: "none" }}
 			/>
 		</ChatPageContainer>

@@ -77,7 +77,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 		useCallback(
 			(message, fileBuffers) => {
 				if (socket) {
-					socket.emit("upload_file", {
+					socket.emit("upload_files", {
 						message: message.trim(),
 						to: toUser,
 						userID: currentUserID,
@@ -92,7 +92,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 		(fileNames, messageId, setFiles) => {
 			if (socket) {
 				socket.emit(
-					"load_file",
+					"load_files",
 					{
 						names: fileNames,
 						messageId: messageId,
