@@ -3,6 +3,7 @@ import {
 	SetStateAction,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import ChatMessage from "../ChatMessage";
@@ -19,8 +20,11 @@ import {
 	ListSubheader,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import AttachmentIcon from "@mui/icons-material/Attachment";
+import AddIcon from "@mui/icons-material/Add";
 import { ChatPageContainer } from "./style";
 import { Message } from "../../types/message";
+import AttachedFiles from "../AttachedFiles";
 
 type ChatProps = {
 	initial: boolean;
@@ -91,13 +95,14 @@ const Chat = ({ initial }: ChatProps) => {
 	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const [message, setMessage] = useState<string>("");
 	const [showCommandDialog, setShowCommandDialog] = useState<boolean>(false);
-	const [file, setFile] = useState(null);
+	const [files, setFiles] = useState<any>([]);
 	const [commands, setCommands] = useState([
 		{ name: "Update My Goals" },
 		{ name: "View History" },
 		{ name: "View Goals and Comment Updates" },
 	]);
-
+	const inputRef = useRef<HTMLInputElement>(null);
+	const addFileRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
 		if (receivedMessages) {
 			const lastIndex = receivedMessages.length - 1;
@@ -108,24 +113,30 @@ const Chat = ({ initial }: ChatProps) => {
 	}, [receivedMessages]);
 
 	const onSend = () => {
-		if (file) {
-			attachmentChat();
+		if (files.length != 0) {
+			sendattachmentChat();
 			return;
 		}
 		sendMessage(message.trim());
 		setMessage("");
 	};
-	const attachmentChat = () => {
-		if (file) {
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				const imageData = reader.result.split(",")[1];
-				sendAttachedMessage(message.trim(), imageData, file.name);
-			};
-
-			reader.readAsDataURL(file);
+	const sendattachmentChat = async () => {
+		if (files.length != 0) {
+			const fileBuffers = await Promise.all(
+				files.map((file: any) => {
+					return new Promise((resolve) => {
+						const reader = new FileReader();
+						reader.onloadend = () => {
+							const imageData = reader.result.split(",")[1];
+							resolve({ data: imageData, name: file.name });
+						};
+						reader.readAsDataURL(file);
+					});
+				})
+			);
+			sendAttachedMessage(message.trim(), fileBuffers);
 		}
-		setFile(null);
+		setFiles([]);
 	};
 
 	const setTimeZone = (value: SetStateAction<string>) => {
@@ -137,6 +148,56 @@ const Chat = ({ initial }: ChatProps) => {
 			setShowCommandDialog(true);
 		else setShowCommandDialog(false);
 		setMessage(event.target.value);
+	};
+
+	const handleFileChange = async (e: any) => {
+		let allow = true;
+		if (e.target.files.length > 10) {
+			alert("can send more than 10 files");
+			return;
+		}
+		for (const file of Array.from(e.target.files)) {
+			if (file.size > 1100000) {
+				alert("file size should not be more than 1 mb");
+				allow = false;
+				break;
+			}
+		}
+		if (allow) {
+			setFiles(Array.from(e.target.files));
+		} else {
+			setFiles([]);
+		}
+		inputRef.current!.value = null;
+	};
+
+	const handleAddFileChange = async (e: any) => {
+		let allow = true;
+		if (e.target.files.length + files.length > 10) {
+			alert("cant send more than 10 files");
+			return;
+		}
+		for (const file of Array.from(e.target.files)) {
+			if (file.size > 1100000) {
+				alert("file size should not be more than 1 mb");
+				allow = false;
+				break;
+			}
+			if (files.some((existingFile: any) => existingFile.name === file.name)) {
+				alert("File with the same name already exists");
+				allow = false;
+				break;
+			}
+		}
+		const uniqueNewFiles = Array.from(e.target.files).filter(
+			(newFile) =>
+				!files.some((existingFile: any) => existingFile.name === newFile.name)
+		);
+
+		if (allow) {
+			setFiles((prevFiles: any) => [...prevFiles, ...uniqueNewFiles]);
+		}
+		addFileRef.current!.value = null;
 	};
 
 	// const generateForm = () => {
@@ -169,8 +230,25 @@ const Chat = ({ initial }: ChatProps) => {
 			{showCommandDialog && (
 				<CommandDialog commands={commands} message={message} />
 			)}
+			{files.length != 0 && <AttachedFiles files={files} setFiles={setFiles} />}
 			<Box display={"flex"}>
-				<input type="file" onChange={(e) => setFile(e?.target?.files?.[0])} />
+				{files.length != 0 ? (
+					<IconButton
+						onClick={() => {
+							addFileRef?.current?.click();
+						}}
+					>
+						<AddIcon />
+					</IconButton>
+				) : (
+					<IconButton
+						onClick={() => {
+							inputRef?.current?.click();
+						}}
+					>
+						<AttachmentIcon />
+					</IconButton>
+				)}
 				<TextField
 					onChange={onMessageChange}
 					onKeyDown={(e) => {
@@ -190,8 +268,21 @@ const Chat = ({ initial }: ChatProps) => {
 				close={setOpen}
 				setTimeZone={setTimeZone}
 			/>
+			<input
+				ref={inputRef}
+				type="file"
+				multiple
+				onChange={handleFileChange}
+				style={{ display: "none" }}
+			/>
+			<input
+				ref={addFileRef}
+				type="file"
+				multiple
+				onChange={handleAddFileChange}
+				style={{ display: "none" }}
+			/>
 		</ChatPageContainer>
 	);
 };
-
 export default Chat;

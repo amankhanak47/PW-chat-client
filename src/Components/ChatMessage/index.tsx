@@ -5,6 +5,7 @@ import { StyledMessage } from "./style";
 import { Fragment, FunctionComponent, useEffect, useState } from "react";
 import { Button, TextField } from "@mui/material";
 import { Message } from "../../types/message";
+import AttachedFiles from "../AttachedFiles";
 
 const users = { 1: "CEO", 2: "Team Member" };
 
@@ -29,11 +30,10 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
 		type,
 		attachments,
 	} = message;
-	console.log(attachments, "eropm72");
-	const { initialize, currentUserID } = useSocket();
+	const { initialize, currentUserID, getImageUrl } = useSocket();
 	const direction = sender == currentUserID ? "right" : "left";
 	const [formValue, setFormValue] = useState(message?.form_data?.initial);
-	const [url, setUrl] = useState();
+	const [files, setFiles] = useState([]);
 	const isLapsed = message?.form_data?.isLapsed;
 	// const handleForm = async () => {
 	// 	socket.emit("update_form", {
@@ -46,18 +46,19 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
 	// 	await new Promise((resolve) => setTimeout(resolve, 500));
 	// 	initialize();
 	// };
+	useEffect(() => {
+		if (type === "attachments") {
+			const fileNames = attachments || [];
+			getImageUrl(fileNames, message.id, setFiles);
+		}
+	}, []);
 	return (
 		<StyledMessage direction={direction}>
 			<div className={`message-content ${direction}`} id={uuid}>
 				<div className="message-body">
-					{type === "attachments" && (
-						<>
-							<img src={url} alt="" />
-							<a href={url} download>
-								Download File
-							</a>
-						</>
-					)}
+					{type === "attachments" &&
+						<AttachedFiles files={files}/>
+					}
 					<p>{content}</p>
 					{buttons &&
 						buttons.length > 0 &&
@@ -73,7 +74,8 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
 									);
 								})}
 							</div>
-						)}
+						)
+					}
 
 					{message?.form_data && (
 						<Fragment>

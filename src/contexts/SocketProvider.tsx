@@ -8,7 +8,8 @@ type SocketProviderProps = {
 
 type ISocketContext = {
 	sendMessage: (msg: string) => any;
-	sendAttachedMessage: (msg: string, fileBuffer: any, fileName) => any;
+	sendAttachedMessage: (msg: string, fileBuffer: string) => any;
+	getImageUrl: (fileNames: string, messageId: string, setUrl: any) => any;
 	getMessages: () => any;
 	receivedMessages: Message[];
 	currentUserID: number;
@@ -30,8 +31,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 	const [socket, setSocket] = useState<Socket>();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [currentUserID, setCurrentUserID] = useState<number>(1);
-	const toUser = currentUserID == 1 ? 2 : 1;
-
+	const toUser: number = currentUserID == 1 ? 2 : 1;
 	const onFetchMessages = useCallback((messages: Message[]) => {
 		setMessages(messages);
 	}, []);
@@ -75,19 +75,36 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 	const sendAttachedMessage: ISocketContext["sendAttachedMessage"] =
 		useCallback(
-			(message, fileBuffer, fileName) => {
-				if (socket && message.trim()) {
+			(message, fileBuffer) => {
+				if (socket) {
 					socket.emit("upload_file", {
 						message: message.trim(),
 						to: toUser,
 						userID: currentUserID,
 						file: fileBuffer,
-						fileName: fileName,
 					});
 				}
 			},
 			[currentUserID, socket, toUser]
 		);
+
+	const getImageUrl: ISocketContext["getImageUrl"] = useCallback(
+		(fileNames, messageId, setUrl) => {
+			if (socket) {
+				socket.emit(
+					"load_file",
+					{
+						names: fileNames,
+						messageId: messageId,
+					},
+					(data: any) => {
+						setUrl(data);
+					}
+				);
+			}
+		},
+		[socket]
+	);
 
 	const onMessageRec = useCallback((message: Message) => {
 		console.log("From Server Msg Rec", message);
@@ -111,6 +128,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 		sendMessage,
 		sendAttachedMessage,
 		receivedMessages: messages,
+		getImageUrl,
 		getMessages,
 		currentUserID,
 		setCurrentUserID,
