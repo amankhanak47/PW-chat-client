@@ -23,7 +23,7 @@ const InitialConfigurationDialog = ({
 	const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
 	const { setCurrentUserID, initialize } = useSocket();
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setCurrentUserID((event.target as HTMLInputElement).value);
+		setCurrentUserID(Number((event.target as HTMLInputElement).value));
 	};
 
 	return (
