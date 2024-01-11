@@ -44,4 +44,16 @@ export const ChatPageContainer = styled.div`
     border: none;
     outline: none;
   }
+  .editor {
+    width: 100%;
+    border: 1px solid grey;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  ._rootContentEditableWrapper_11eqz_1047,
+  ._contentEditable_11eqz_352 {
+    height: 100%;
+    align-items: center;
+    overflow: hidden;
+  }
 `;
