@@ -2,10 +2,11 @@ import { Link } from "react-router-dom";
 import { useSocket } from "../../contexts/SocketProvider";
 import { convertToSelectedTimeZone } from "../../helpers/helpers";
 import { StyledMessage } from "./style";
-import { Fragment, FunctionComponent, useState } from "react";
+import { Fragment, FunctionComponent, useEffect, useState } from "react";
 import { Button, TextField } from "@mui/material";
 import { Message } from "../../types/message";
 import Markdown from "react-markdown";
+import AttachedFiles from "../AttachedFiles";
 
 const users = { 1: "CEO", 2: "Team Member" };
 
@@ -27,10 +28,13 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
     receiver,
     sent_at,
     uuid,
+    type,
+    attachments,
   } = message;
-  const { initialize, currentUserID } = useSocket();
+  const { initialize, currentUserID, getImageUrl } = useSocket();
   const direction = sender == currentUserID ? "right" : "left";
   const [formValue, setFormValue] = useState(message?.form_data?.initial);
+  const [files, setFiles] = useState([]);
   const isLapsed = message?.form_data?.isLapsed;
   // const handleForm = async () => {
   // 	socket.emit("update_form", {
@@ -43,11 +47,33 @@ const ChatMessage: FunctionComponent<ChatMessageProps> = ({
   // 	await new Promise((resolve) => setTimeout(resolve, 500));
   // 	initialize();
   // };
+  useEffect(() => {
+    if (attachments) {
+      const fileNames = attachments || [];
+      getImageUrl(fileNames, message.id, setFiles);
+    }
+  }, []);
   return (
     <StyledMessage direction={direction}>
       <div className={`message-content ${direction}`} id={uuid}>
         <div className="message-body">
+          {attachments && <AttachedFiles files={files} />}
           <Markdown>{content}</Markdown>
+          {buttons &&
+            buttons.length > 0 &&
+            buttons[0].label != null &&
+            !isLapsed &&
+            sender != currentUserID && (
+              <div className="buttons">
+                {buttons.map((btn: any) => {
+                  return (
+                    <Link to={btn.link_url} className="redirect-login">
+                      <button className="chat-btn">{btn.label}</button>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
 
           {buttons &&
             buttons.length > 0 &&

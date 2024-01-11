@@ -8,6 +8,8 @@ type SocketProviderProps = {
 
 type ISocketContext = {
 	sendMessage: (msg: string) => any;
+	sendAttachedMessage: (msg: string, fileBuffers: string) => any;
+	getImageUrl: (fileNames: string, messageId: string, setFiles: any) => any;
 	getMessages: () => any;
 	receivedMessages: Message[];
 	currentUserID: number;
@@ -29,8 +31,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 	const [socket, setSocket] = useState<Socket>();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [currentUserID, setCurrentUserID] = useState<number>(1);
-	const toUser = currentUserID == 1 ? 2 : 1;
-
+	const toUser: number = currentUserID == 1 ? 2 : 1;
 	const onFetchMessages = useCallback((messages: Message[]) => {
 		setMessages(messages);
 	}, []);
@@ -72,6 +73,39 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 		[currentUserID, socket, toUser]
 	);
 
+	const sendAttachedMessage: ISocketContext["sendAttachedMessage"] =
+		useCallback(
+			(message, fileBuffers) => {
+				if (socket) {
+					socket.emit("upload_files", {
+						message: message.trim(),
+						to: toUser,
+						userID: currentUserID,
+						files: fileBuffers,
+					});
+				}
+			},
+			[currentUserID, socket, toUser]
+		);
+
+	const getImageUrl: ISocketContext["getImageUrl"] = useCallback(
+		(fileNames, messageId, setFiles) => {
+			if (socket) {
+				socket.emit(
+					"load_files",
+					{
+						names: fileNames,
+						messageId: messageId,
+					},
+					(data: any) => {
+						setFiles(data);
+					}
+				);
+			}
+		},
+		[socket]
+	);
+
 	const onMessageRec = useCallback((message: Message) => {
 		console.log("From Server Msg Rec", message);
 		setMessages((prev) => [...prev, message]);
@@ -92,7 +126,9 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 	const value = {
 		sendMessage,
+		sendAttachedMessage,
 		receivedMessages: messages,
+		getImageUrl,
 		getMessages,
 		currentUserID,
 		setCurrentUserID,
