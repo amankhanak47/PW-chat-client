@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "@emotion/styled": "^11.11.0",
+    "@mdxeditor/editor": "^2.2.1",
     "@mui/icons-material": "^5.15.2",
     "@mui/material": "^5.15.2",
     "moment-timezone": "^0.5.44",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
     "react-file-icon": "^1.4.0",
     "react-file-viewer": "^1.2.1",
     "react-file-viewer-extended": "^2.1.0",
