@@ -23,7 +23,7 @@ const InitialConfigurationDialog = ({
   const [selectedTimeZone, setSelectedTimeZone] = useState("Asia/Kolkata");
   const { setCurrentUserID, initialize } = useSocket();
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentUserID((event.target as HTMLInputElement).value);
+    setCurrentUserID(Number((event.target as HTMLInputElement).value));
   };
 
   return (
@@ -37,9 +37,9 @@ const InitialConfigurationDialog = ({
             onChange={handleChange}
             row
           >
-            <FormControlLabel value="1" control={<Radio />} label="CEO" />
+            <FormControlLabel value={1} control={<Radio />} label="CEO" />
             <FormControlLabel
-              value="2"
+              value={2}
               control={<Radio />}
               label="Team Member"
             />

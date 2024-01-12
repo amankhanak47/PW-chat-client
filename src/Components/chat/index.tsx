@@ -32,6 +32,7 @@ import {
 import AttachedFiles from "../AttachedFiles";
 import CommandDialog from "../CommandDialog";
 import UpdateGoalsFlow from "../UpdateGoalsFlow";
+import ApplyLeaveFlow from "../ApplyLeaveFlow";
 
 type ChatProps = {
   initial: boolean;
@@ -40,6 +41,8 @@ type ChatProps = {
 type Command = {
   name: string;
 };
+
+const users = { 1: "CEO", 2: "Team Member" };
 
 const renderMessages = (messages: Message[], selectedTimezone: string) => {
   return (
@@ -56,17 +59,32 @@ const renderMessages = (messages: Message[], selectedTimezone: string) => {
   );
 };
 
-const CommandComponent = ({ activeCommand }: { activeCommand: Command }) => {
+const CommandComponent = ({
+  activeCommand,
+  hideCommandDialog,
+}: {
+  activeCommand: Command;
+  hideCommandDialog: () => void;
+}) => {
   switch (activeCommand.name) {
     case AvailableCommands.UPDATE_GOALS: {
-      return <UpdateGoalsFlow />;
+      return <UpdateGoalsFlow hideCommandDialog={hideCommandDialog} />;
+    }
+    case AvailableCommands.APPLY_FOR_LEAVE: {
+      return <ApplyLeaveFlow hideCommandDialog={hideCommandDialog} />;
     }
   }
   return <Fragment></Fragment>;
 };
 
+const commands = [
+  { name: AvailableCommands.UPDATE_GOALS, code: "UPDATE_MY_GOALS" },
+  { name: AvailableCommands.APPLY_FOR_LEAVE, code: "APPLY_FOR_LEAVE" },
+];
+
 const Chat = ({ initial }: ChatProps) => {
-  const { sendMessage, sendAttachedMessage, receivedMessages } = useSocket();
+  const { sendMessage, sendAttachedMessage, receivedMessages, currentUserID } =
+    useSocket();
   const [open, setOpen] = useState(initial);
   const [selectedTimeZone, setSelectedTimeZone] = useState("America/New_York");
   const [message, setMessage] = useState<string>("");
@@ -74,14 +92,10 @@ const Chat = ({ initial }: ChatProps) => {
   const [files, setFiles] = useState<any>([]);
   const editorRef = useRef<MDXEditorMethods>(null);
   const [openToolbar, setToolBar] = useState<boolean>();
-  const [commands, setCommands] = useState([
-    { name: "Update My Goals", code: "UPDATE_MY_GOALS" },
-    { name: "View History", code: "VIEW_HISTORY" },
-    { name: "View Goals and Comment Updates", code: "COMMENT_ON_GOALS" },
-  ]);
   const [activeCommand, setActiveCommand] = useState<Command | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
   const addFileRef = useRef<HTMLInputElement>(null);
+  const currentUser = users[currentUserID];
 
   useEffect(() => {
     if (receivedMessages) {
@@ -94,14 +108,15 @@ const Chat = ({ initial }: ChatProps) => {
 
   const onSend = () => {
     if (files.length != 0) {
-      sendattachmentChat();
+      sendAttachmentMessage();
       return;
     }
     sendMessage(message.trim());
     setMessage("");
+    setShowCommandDialog(false);
   };
 
-  const sendattachmentChat = async () => {
+  const sendAttachmentMessage = async () => {
     if (files.length != 0) {
       const fileBuffersPromise = files.map((file: any) => {
         return new Promise((resolve) => {
@@ -126,11 +141,12 @@ const Chat = ({ initial }: ChatProps) => {
 
   const onMessageChange = (event: any, usedFor?: string) => {
     if (usedFor) {
-      if (event && event.startsWith("/")) setShowCommandDialog(true);
+      if (event && event.startsWith("/") && currentUser != "CEO")
+        setShowCommandDialog(true);
       else setShowCommandDialog(false);
       setMessage(event);
     } else {
-      if (event && event.target.value.startsWith("/"))
+      if (event && event.target.value.startsWith("/") && currentUser != "CEO")
         setShowCommandDialog(true);
       else setShowCommandDialog(false);
       setMessage(event.target.value);
@@ -236,7 +252,12 @@ const Chat = ({ initial }: ChatProps) => {
           onCommandSelected={handleCommandSelected}
         />
       )}
-      {activeCommand && <CommandComponent activeCommand={activeCommand} />}
+      {activeCommand && (
+        <CommandComponent
+          activeCommand={activeCommand}
+          hideCommandDialog={() => setActiveCommand(undefined)}
+        />
+      )}
       {files.length != 0 && <AttachedFiles files={files} setFiles={setFiles} />}
       <Box display={"flex"}>
         {files.length != 0 ? (
@@ -286,7 +307,9 @@ const Chat = ({ initial }: ChatProps) => {
             }}
             value={message}
             size="small"
-            placeholder="Type / to view available actions"
+            placeholder={
+              currentUser != "CEO" ? "Type / to view available actions" : ""
+            }
             InputProps={{
               startAdornment: activeCommand && (
                 <Chip
@@ -307,11 +330,6 @@ const Chat = ({ initial }: ChatProps) => {
           <SendIcon />
         </IconButton>
       </Box>
-      <InitialConfigurationDialog
-        open={open}
-        close={setOpen}
-        setTimeZone={setTimeZone}
-      />
       <input
         ref={inputRef}
         type="file"
@@ -325,6 +343,11 @@ const Chat = ({ initial }: ChatProps) => {
         multiple
         onChange={handleAdditionalUpload}
         style={{ display: "none" }}
+      />
+      <InitialConfigurationDialog
+        open={open}
+        close={setOpen}
+        setTimeZone={setTimeZone}
       />
     </ChatPageContainer>
   );

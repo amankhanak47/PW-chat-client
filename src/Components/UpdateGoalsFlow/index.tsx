@@ -12,37 +12,36 @@ import {
   Button,
 } from "@mui/material";
 import axios from "axios";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, FunctionComponent } from "react";
+import { useSocket } from "../../contexts/SocketProvider";
 
 type Goal = {
   title: string;
   actual: number;
   target: number;
-  uuid: number;
+  uuid: string;
 };
 
 const cardContentSx = { p: 1, pb: "0 !important", overflow: "auto" };
 
-const UpdateGoalsFlow = () => {
+const UpdateGoalsFlow: FunctionComponent<{ hideCommandDialog: () => void }> = ({
+  hideCommandDialog,
+}) => {
   const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>();
-  const [goals, setGoals] = useState<Goal[]>([
-    { title: "Goal 1", target: 1000, actual: 500, uuid: 1 },
-    { title: "Goal 2", target: 2000, actual: 600, uuid: 2 },
-  ]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [goalActualValue, setGoalActualValue] = useState<number>();
+  const [goalActualValue, setGoalActualValue] = useState<string>();
+  const { updateGoal } = useSocket();
 
   const getGoals = async () => {
     const goals = await axios.get("http://localhost:8000/api/goal/2");
-    //setGoals(goals.data);
+    setGoals(goals.data?.goals);
   };
 
-  const updateGoal = async () => {
+  const handleUpdateGoal = async () => {
     if (!selectedGoal || !goalActualValue) return;
-    await axios.post("http://localhost:8000/api/update-goal", {
-      goalID: selectedGoal.uuid,
-      actual: goalActualValue,
-    });
+    updateGoal(selectedGoal.uuid, parseInt(goalActualValue));
+    hideCommandDialog();
   };
 
   useEffect(() => {
@@ -52,7 +51,7 @@ const UpdateGoalsFlow = () => {
   const onGoalSelected = (goal: Goal) => {
     setSelectedGoal(goal);
     setCurrentStep((prev) => prev + 1);
-    setGoalActualValue(goal.actual);
+    setGoalActualValue(goal.actual.toString());
   };
 
   const renderGoalsList = () => {
@@ -77,7 +76,7 @@ const UpdateGoalsFlow = () => {
 
   if (currentStep == 0) {
     return (
-      <Card>
+      <Card sx={{ maxWidth: 600 }}>
         <CardContent sx={cardContentSx}>
           <Typography variant="subtitle2">Select a goal</Typography>
           <List dense>{renderGoalsList()}</List>
@@ -86,7 +85,7 @@ const UpdateGoalsFlow = () => {
     );
   } else if (currentStep == 1 && selectedGoal) {
     return (
-      <Card>
+      <Card sx={{ maxWidth: 600 }}>
         <CardContent>
           <Typography variant="overline">{selectedGoal.title}</Typography>
           <Box
@@ -99,7 +98,8 @@ const UpdateGoalsFlow = () => {
               variant="outlined"
               size="small"
               value={goalActualValue}
-              onChange={(e) => setGoalActualValue(parseInt(e.target.value))}
+              defaultValue={selectedGoal.actual}
+              onChange={(e) => setGoalActualValue(e.target.value)}
             />
             <Typography
               variant="overline"
@@ -115,13 +115,18 @@ const UpdateGoalsFlow = () => {
           >
             Back
           </Button>
-          <Button size="small" color="primary" onClick={() => updateGoal()}>
+          <Button
+            size="small"
+            color="primary"
+            onClick={() => handleUpdateGoal()}
+          >
             Save
           </Button>
         </CardActions>
       </Card>
     );
   }
+
   return <Box>{currentStep}</Box>;
 };
 
